@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Experience Calculator</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <style>
+    html,body{height:100%;margin:0;padding:0}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(to bottom,#e0f7fa,#fff);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px}
+    .container{background:#fff;padding:25px;border-radius:12px;box-shadow:0 6px 12px rgba(0,0,0,.15);width:100%;max-width:480px}
+    .field-group{margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center}
+    .field-group label{flex:0 0 140px;margin:0;font-weight:700}
+    .field-group select,.field-group input[type=text]{padding:8px;margin-right:5px;border:1px solid #b0bec5;border-radius:4px}
+    .field-group input[id*=Year]{width:60px}
+    .field-group input[id*=employerName]{width:calc(60px + 110px + 15px)}
+    button{padding:10px 15px;background:#0288d1;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:1em;transition:.3s;width:100%}
+    button:hover{background:#0277bd}
+    #result{margin-top:20px;font-size:1.1em;color:#37474f;text-align:center}
+    .calendar-icon{cursor:pointer;width:18px;height:18px;vertical-align:middle}
+    .calendar-trigger{width:1px;height:1px;opacity:0;border:none;margin-left:-4px;pointer-events:none}
+    footer{width:100%;text-align:center;font-size:.9em;color:#607d8b;position:fixed;bottom:10px;left:0}
+    .calendar-icon-wrapper{display:inline-block;position:relative}
+    .btn-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .btn-group button{margin-top:0}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 style="text-align:center">Experience Calculator</h2>
+    <div id="employerContainer"></div>
+    <div class="btn-group">
+      <button onclick="addEmployer()">Add Employer</button>
+      <button onclick="removeEmployer()">Remove Last Employer</button>
+    </div>
+    <button style="margin-top:10px" onclick="calculateExperience()">Calculate Total Experience</button>
+    <div id="result"></div>
+  </div>
+  <footer>&copy; 2025 Experience Calculator. All rights reserved.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+let employerCount=0;
+const calendarRefs={};
+
+function populateDaysAndMonths(dayId,monthId){
+  const daySel=document.getElementById(dayId);
+  const monthSel=document.getElementById(monthId);
+  if(!daySel||!monthSel) return;
+  daySel.innerHTML='';monthSel.innerHTML='';
+  for(let i=1;i<=31;i++){const o=document.createElement('option');o.value=i;o.text=i;daySel.appendChild(o);}  
+  ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].forEach((m,i)=>{const o=document.createElement('option');o.value=i;o.text=m;monthSel.appendChild(o)});
+  daySel.value='1';monthSel.value='0';
+}
+
+function setupFlatpickr(prefix){
+  const picker=document.getElementById(`${prefix}Picker`);
+  if(!picker) return;
+  calendarRefs[prefix]=flatpickr(picker,{
+    defaultDate:new Date(),
+    disableMobile:true,
+    position:"right",
+    onChange:(sel)=>{
+      const d=sel[0];
+      // prefix pattern: start0 / end0 etc.
+      const m=prefix.match(/^(start|end)(\d+)$/);
+      if(!m) return;
+      const base=m[1];
+      const idx=m[2];
+      const yEl=document.getElementById(`${base}Year${idx}`);
+      const mEl=document.getElementById(`${base}Month${idx}`);
+      const dEl=document.getElementById(`${base}Day${idx}`);
+      if(yEl&&mEl&&dEl){
+        yEl.value=d.getFullYear();
+        mEl.value=d.getMonth();
+        dEl.value=d.getDate();
+      }
+    }
+  });
+}
+
+function openCalendar(prefix){if(calendarRefs[prefix])calendarRefs[prefix].open();}
+
+function addEmployer(){
+  const cont=document.getElementById('employerContainer');
+  const idx=employerCount;
+  const block=document.createElement('div');block.id=`employerBlock${idx}`;block.style.paddingTop='15px';
+  const head=document.createElement('h4');head.textContent=`Employer #${idx+1}`;head.style.marginBottom='10px';block.appendChild(head);
+
+  block.innerHTML+=
+    `<div class="field-group"><label for="employerName${idx}">Employer Name:</label><input type="text" id="employerName${idx}" placeholder="Enter employer name"></div>`+
+    `<div class="field-group"><label>Start Date:</label><select id="startDay${idx}"></select><select id="startMonth${idx}"></select><input type="text" id="startYear${idx}" placeholder="Year"><input type="text" id="start${idx}Picker" class="calendar-trigger" readonly><span class="calendar-icon-wrapper"><img src="https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/calendar-icon.png" class="calendar-icon" onclick="openCalendar('start${idx}')"></span></div>`+
+    `<div class="field-group"><label>End Date:</label><select id="endDay${idx}"></select><select id="endMonth${idx}"></select><input type="text" id="endYear${idx}" placeholder="Year"><input type="text" id="end${idx}Picker" class="calendar-trigger" readonly><span class="calendar-icon-wrapper"><img src="https://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/calendar-icon.png" class="calendar-icon" onclick="openCalendar('end${idx}')"></span></div>`+
+    `<hr style="border-top:2px dashed #bbb;margin:20px 0">`;
+  cont.appendChild(block);
+
+  populateDaysAndMonths(`startDay${idx}`,`startMonth${idx}`);
+  populateDaysAndMonths(`endDay${idx}`,`endMonth${idx}`);
+  setupFlatpickr(`start${idx}`);
+  setupFlatpickr(`end${idx}`);
+  employerCount++;
+}
+
+function removeEmployer(){if(employerCount<=1) return;const idx=employerCount-1;const blk=document.getElementById(`employerBlock${idx}`);if(blk){blk.remove();employerCount--;}}
+
+function calculateExperience(){
+  let total=0;let out='<ul style="text-align:left">';
+  for(let i=0;i<employerCount;i++){
+    const y1=document.getElementById(`startYear${i}`),m1=document.getElementById(`startMonth${i}`),d1=document.getElementById(`startDay${i}`),y2=document.getElementById(`endYear${i}`),m2=document.getElementById(`endMonth${i}`),d2=document.getElementById(`endDay${i}`);
+    if(!(y1&&m1&&d1&&y2&&m2&&d2) || !y1.value||!m1.value||!d1.value||!y2.value||!m2.value||!d2.value) continue;
+    const s=new Date(+y1.value,+m1.value,+d1.value);const e=new Date(+y2.value,+m2.value,+d2.value);
+    if(isNaN(s)||isNaN(e)||e<s) continue;
+    const diff=(e-s)/86400000;total+=diff;
+    const yrs=Math.floor(diff/365),mos=Math.floor((diff%365)/30),dys=Math.floor((diff%365)%30);
+    const name=document.getElementById(`employerName${i}`).value||`Employer ${i+1}`;
+    out+=`<li>${name}: ${yrs} years, ${mos} months, ${dys} days</li>`;
+  }
+  out+='</ul>';const ty=Math.floor(total/365),tm=Math.floor((total%365)/30),td=Math.floor((total%365)%30);
+  out+=`<p><strong>Total Experience: ${ty} years, ${tm} months, ${td} days</strong></p>`;
+  document.getElementById('result').innerHTML=out;
+}
+
+document.addEventListener('DOMContentLoaded',()=>addEmployer());
+</script>
+</body>
+</html>
