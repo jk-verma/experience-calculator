@@ -35,7 +35,7 @@
     .btn-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
     .btn-group button{margin-top:0}
   @media (min-width:600px){
-      .field-group{margin:0 0 20px 0;} /* remove extra indent on larger screens */
+      .field-group{margin:0 0 20px 0;}
       .field-group label{flex:0 0 140px;margin-bottom:0;text-align:right;}
     }
     }
@@ -88,13 +88,13 @@ function setupFlatpickr(prefix){
       const dEl=document.getElementById(`${base}Day${idx}`);
       if(yEl&&mEl&&dEl){
         yEl.value=d.getFullYear();
-        mEl.value=d.getMonth();
-        dEl.value=d.getDate();
+        mEl.value = d.getMonth();
+        dEl.value = d.getDate();
       }
     }
   });
 }
-
+          
 function openCalendar(prefix){if(calendarRefs[prefix])calendarRefs[prefix].open();}
 
 function addEmployer(){
@@ -126,7 +126,8 @@ function calculateExperience(){
     if(!(y1&&m1&&d1&&y2&&m2&&d2) || !y1.value||!m1.value||!d1.value||!y2.value||!m2.value||!d2.value) continue;
     const s=new Date(+y1.value,+m1.value,+d1.value);const e=new Date(+y2.value,+m2.value,+d2.value);
     if(isNaN(s)||isNaN(e)||e<s) continue;
-    const diff=(e-s)/86400000;total+=diff;
+    const diff = ((e - s) / 86400000) + 1; // inclusive of both start and end
+    total += diff;
     const yrs=Math.floor(diff/365),mos=Math.floor((diff%365)/30),dys=Math.floor((diff%365)%30);
     const name=document.getElementById(`employerName${i}`).value||`Employer ${i+1}`;
     out+=`<li>${name}: ${yrs} years, ${mos} months, ${dys} days</li>`;
