@@ -37,9 +37,8 @@
   @media (min-width:600px){
       .field-group{margin:0 0 20px 0;}
       .field-group label{flex:0 0 140px;margin-bottom:0;text-align:right;}
-    }
-    }
-  </style>
+      }
+</style>
 </head>
 <body>
   <div class="container">
@@ -56,6 +55,19 @@
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
+// Disable right‑click context menu and common DevTools shortcuts
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{
+  if(
+    e.key==='F12' ||
+    (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase())) ||
+    (e.ctrlKey && e.key.toUpperCase()==='U')
+  ){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+});
+
 let employerCount=0;
 const calendarRefs={};
 
